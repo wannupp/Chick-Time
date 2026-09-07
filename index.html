@@ -16,7 +16,7 @@
     </header>
 
     <!-- Konten Utama -->
-    <main class="max-w-md mx-auto p-4 pb-32">
+    <main class="max-w-md mx-auto p-4 pb-48">
         
         <!-- Pilihan Tipe Pesanan (Dine-in / Takeaway) -->
         <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
@@ -93,14 +93,26 @@
 
     <!-- Floating Cart / Checkout Bar -->
     <div id="cart-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-amber-200 p-4 shadow-lg hidden">
-        <div class="max-w-md mx-auto flex justify-between items-center">
-            <div>
-                <p class="text-xs text-gray-500">Total Pesanan (<span id="cart-count">0</span> item)</p>
-                <p id="cart-total" class="font-bold text-amber-900 text-lg">Rp 0</p>
+        <div class="max-w-md mx-auto">
+            <!-- Pilihan Metode Pembayaran -->
+            <div class="mb-3 border-b border-gray-100 pb-3">
+                <label class="block text-xs font-bold text-amber-900 mb-1.5">Metode Pembayaran:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button type="button" id="pay-cash" onclick="setPaymentMethod('Cash / Tunai di Kasir')" class="py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-900 bg-amber-900 text-white transition">💵 Cash / Tunai</button>
+                    <button type="button" id="pay-qris" onclick="setPaymentMethod('QRIS (Scan & Bayar Instan)')" class="py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-300 text-amber-900 bg-white transition">📱 QRIS Resmi</button>
+                </div>
             </div>
-            <button onclick="checkoutWhatsApp()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow flex items-center gap-2">
-                Pesan via WhatsApp 📱
-            </button>
+
+            <!-- Rincian Total & Tombol Pesan -->
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-xs text-gray-500">Total (<span id="cart-count">0</span> item)</p>
+                    <p id="cart-total" class="font-bold text-amber-900 text-lg">Rp 0</p>
+                </div>
+                <button onclick="checkoutWhatsApp()" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow flex items-center gap-2">
+                    Pesan via WhatsApp 📱
+                </button>
+            </div>
         </div>
     </div>
 
@@ -108,6 +120,7 @@
     <script>
         let cart = [];
         let selectedOrderType = "Makan di Tempat (Dine-in)";
+        let selectedPayment = "Cash / Tunai di Kasir";
 
         function setOrderType(type) {
             selectedOrderType = type;
@@ -123,6 +136,20 @@
                 btnTakeaway.className = "py-2 px-3 text-sm font-semibold rounded-lg border-2 border-amber-900 bg-amber-900 text-white transition";
                 btnDineIn.className = "py-2 px-3 text-sm font-semibold rounded-lg border-2 border-amber-300 text-amber-900 bg-white transition";
                 tableContainer.style.display = "none";
+            }
+        }
+
+        function setPaymentMethod(method) {
+            selectedPayment = method;
+            let payCash = document.getElementById('pay-cash');
+            let payQris = document.getElementById('pay-qris');
+
+            if (method.includes("Cash")) {
+                payCash.className = "py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-900 bg-amber-900 text-white transition";
+                payQris.className = "py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-300 text-amber-900 bg-white transition";
+            } else {
+                payQris.className = "py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-900 bg-amber-900 text-white transition";
+                payCash.className = "py-1.5 px-2 text-xs font-semibold rounded-lg border-2 border-amber-300 text-amber-900 bg-white transition";
             }
         }
 
@@ -171,10 +198,12 @@
                 return;
             }
 
-            let message = `Halo Kak, saya ingin memesan:\n\n*Tipe Pesanan:* ${selectedOrderType}\n`;
+            let message = `Halo Kak, saya ingin memesan:\n\n`;
+            message += `*Tipe Pesanan:* ${selectedOrderType}\n`;
             if (selectedOrderType.includes("Dine-in")) {
                 message += `*Nomor Meja:* ${tableNo}\n`;
             }
+            message += `*Pembayaran:* ${selectedPayment}\n`;
             message += `\n*Daftar Pesanan:*\n`;
 
             let totalPrice = 0;
@@ -183,7 +212,13 @@
                 totalPrice += i.price * i.qty;
             });
             
-            message += `\n*Total: Rp ${totalPrice.toLocaleString('id-ID')}*\n\nMohon diproses ya kak. Terima kasih!`;
+            message += `\n*Total: Rp ${totalPrice.toLocaleString('id-ID')}*\n\n`;
+            
+            if (selectedPayment.includes("QRIS")) {
+                message += `*Catatan:* Saya memilih pembayaran QRIS, mohon kirimkan gambar QRIS-nya ya kak.\n\n`;
+            }
+
+            message += `Mohon diproses ya kak. Terima kasih!`;
             
             // Nomor WhatsApp Anda
             let waNumber = "6282233512165"; 
